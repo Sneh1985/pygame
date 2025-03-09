@@ -1,0 +1,97 @@
+import pygame
+import random
+import sys
+
+# Initialize Pygame
+pygame.init()
+
+# Screen setup
+WIDTH, HEIGHT = 800, 400
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Basic Runner Game")
+
+# Clock for FPS
+clock = pygame.time.Clock()
+FPS = 60
+
+# Colors
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+
+# Player settings
+player_size = (50, 50)
+player_x = 100
+player_y = HEIGHT - player_size[1] - 50
+player_vel_y = 0
+gravity = 0.8
+jump_strength = -15
+is_jumping = False
+
+# Obstacle settings
+obstacle_width = 50
+obstacle_height = 50
+obstacle_x = WIDTH
+obstacle_y = HEIGHT - obstacle_height - 50
+obstacle_speed = 7
+
+# Score
+score = 0
+font = pygame.font.SysFont(None, 36)
+
+def draw_player(x, y):
+    pygame.draw.rect(screen, BLACK, (x, y, player_size[0], player_size[1]))
+
+def draw_obstacle(x, y):
+    pygame.draw.rect(screen, (200, 0, 0), (x, y, obstacle_width, obstacle_height))
+
+def display_score(score):
+    text = font.render(f"Score: {score}", True, BLACK)
+    screen.blit(text, (10, 10))
+
+# Game loop
+running = True
+while running:
+    screen.fill(WHITE)
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+    
+    # Player input
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_SPACE] and not is_jumping:
+        player_vel_y = jump_strength
+        is_jumping = True
+
+    # Update player position
+    player_vel_y += gravity
+    player_y += player_vel_y
+
+    if player_y >= HEIGHT - player_size[1] - 50:
+        player_y = HEIGHT - player_size[1] - 50
+        is_jumping = False
+
+    # Move obstacle
+    obstacle_x -= obstacle_speed
+    if obstacle_x < -obstacle_width:
+        obstacle_x = WIDTH + random.randint(0, 300)
+        score += 1
+
+    # Collision detection
+    player_rect = pygame.Rect(player_x, player_y, player_size[0], player_size[1])
+    obstacle_rect = pygame.Rect(obstacle_x, obstacle_y, obstacle_width, obstacle_height)
+
+    if player_rect.colliderect(obstacle_rect):
+        print("Game Over!")
+        pygame.quit()
+        sys.exit()
+
+    # Draw everything
+    draw_player(player_x, player_y)
+    draw_obstacle(obstacle_x, obstacle_y)
+    display_score(score)
+
+    pygame.display.update()
+    clock.tick(FPS)
+
+pygame.quit()
